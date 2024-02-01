@@ -1,0 +1,9 @@
+pandas
+numpy
+line_profiler
+tqdm
+pyarrow
+openpyxl
+pymysql
+sqlalchemy
+rarfile
