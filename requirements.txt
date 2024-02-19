@@ -7,3 +7,4 @@ openpyxl
 pymysql
 sqlalchemy
 rarfile
+line_profiler

@@ -1,5 +1,7 @@
 import json
 from helper_function.hf_string import to_json_str
+from typing import Set, List
+from copy import copy
 
 
 class JsonObj:
@@ -70,3 +72,67 @@ class JsonObj:
         return json.loads(
             self.to_json(include_attrs=include_attrs, exclude_attrs=exclude_attrs)
         )
+
+
+def get_nodes(relation_table):
+    res = list(set(sum(relation_table, start=[])))
+    res = sorted([item for item in res if item])
+    return res
+
+
+def get_graph(relation_table):
+    graph = dict()
+    for node, parent in relation_table:
+        if parent is not None:
+            try:
+                graph[node].add(parent)
+            except KeyError:
+                graph[node] = {parent}
+        else:
+            graph[node] = set()
+    for k in graph.keys():
+        graph[k] = sorted(list(graph[k]))
+    return graph
+
+
+def get_related_nodes(graph, node, visited=None):
+    if visited is None:
+        visited = set()
+
+    parents = set(graph[node])
+    children = set()
+    for node_in_graph, ps in graph.items():
+        if node in ps and node_in_graph not in visited:
+            children.add(node_in_graph)
+            visited.add(node_in_graph)
+            children |= set(get_related_nodes(graph, node_in_graph, visited))
+
+    return sorted(list({node} | parents | children))
+
+
+def depth_first_search(
+        node: str,
+        graph: dict,
+        visited: Set[str],
+        stack: List[str]
+):
+    visited.add(node)
+    for parent in graph[node]:
+        if parent not in visited:
+            depth_first_search(parent, graph, visited, stack)
+    stack.append(node)
+
+
+def topological_sort(relation_table: list, reverse=False) -> List[str]:
+    nodes = get_nodes(relation_table=relation_table)
+    graph = get_graph(relation_table=relation_table)
+    visited = set()
+    stack = []
+    for node in nodes:
+        if node not in visited:
+            depth_first_search(node, graph, visited, stack)
+
+    if reverse:
+        return [node for node in reversed(stack)]
+    else:
+        return [node for node in stack]
