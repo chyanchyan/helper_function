@@ -4,7 +4,6 @@ from shutil import copy
 from helper_function.wrappers import sub_wrapper
 
 
-@sub_wrapper
 def mkdir(path):
     path_copy = str(path)
     while not os.path.exists(path_copy):
@@ -15,7 +14,6 @@ def mkdir(path):
             mkdir(path_copy)
 
 
-@sub_wrapper
 def snapshot(src_path, dst_folder, auto_timestamp=True, comments=''):
     mkdir(dst_folder)
     if auto_timestamp:

@@ -86,3 +86,20 @@ def udf_format(value, f):
             print('unrecognizable value or format')
             raise ValueError
     return res
+
+
+def dash_name_to_camel(s):
+    eles = s.split('_')
+    res = ''.join([str.upper(ele[0]) + ele[1:] for ele in eles])
+    return res
+
+
+def test_dash_name_to_camel():
+    s = 'table_name_example'
+    print(dash_name_to_camel(s))
+
+
+if __name__ == '__main__':
+    test_dash_name_to_camel()
+
+
