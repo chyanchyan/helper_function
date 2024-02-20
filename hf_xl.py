@@ -1,4 +1,9 @@
+import os
 from openpyxl.utils import get_column_letter
+import pandas as pd
+import numpy as np
+from sqlalchemy.exc import OperationalError
+import traceback
 
 
 def fit_col_width(writer, df, sheet_name):
@@ -20,3 +25,22 @@ def fit_col_width(writer, df, sheet_name):
             worksheet.column_dimensions[get_column_letter(i)].width = 22
         else:
             worksheet.column_dimensions[get_column_letter(i)].width = max(min(width + 2, 25), 10)
+
+
+def migration_pandas(engine, data_path, schema, if_exists):
+    name = os.path.basename(data_path)[:-5]
+    try:
+        data = pd.read_excel(data_path, index_col=False)
+        print(data)
+        data.to_sql(
+            name=name,
+            con=engine,
+            schema=schema,
+            if_exists=if_exists,
+            index=False
+        )
+    except FileNotFoundError:
+        print(f'table: {name} xlsx file not exist')
+    except OperationalError as e:
+        print(traceback.format_exc())
+        raise e

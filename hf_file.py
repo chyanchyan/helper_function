@@ -5,13 +5,12 @@ from helper_function.wrappers import sub_wrapper
 
 
 def mkdir(path):
-    path_copy = str(path)
-    while not os.path.exists(path_copy):
+    while not os.path.exists(path):
         try:
-            os.mkdir(path_copy)
+            os.mkdir(path)
         except FileNotFoundError:
-            path_copy = os.path.dirname(path_copy)
-            mkdir(path_copy)
+            mkdir(os.path.dirname(path))
+            os.mkdir(path)
 
 
 def snapshot(src_path, dst_folder, auto_timestamp=True, comments=''):

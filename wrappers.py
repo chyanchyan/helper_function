@@ -64,23 +64,27 @@ def sql_retry_wrapper(func):
     return wrapper
 
 
-def sub_wrapper(sub):
-    def wrapper(*args, **kwargs):
-        status = 0
-        try:
-            print('running %s' % sub.__name__)
-            sub(*args, **kwargs)
-            print('%s done' % sub.__name__)
-        except Exception as e:
-            print(traceback.format_exc())
-            print(repr(e))
-            status = 1
+def sub_wrapper(sys_mode='test'):
+    def _(sub):
+        def wrapper(*args, **kwargs):
+            status = 0
+            try:
+                print('running %s' % sub.__name__)
+                sub(*args, **kwargs)
+                print('%s done' % sub.__name__)
+            except Exception as e:
+                print(traceback.format_exc())
+                print(repr(e))
+                status = 1
+                if str.lower(sys_mode) == 'test':
+                    raise e
 
-        return status
+            return status
 
-    wrapper.__name__ = sub.__name__
+        wrapper.__name__ = sub.__name__
 
-    return wrapper
+        return wrapper
+    return _
 
 
 def confirm_wrapper(sub):
