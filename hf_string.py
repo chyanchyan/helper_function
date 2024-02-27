@@ -94,6 +94,22 @@ def dash_name_to_camel(s):
     return res
 
 
+def list_to_attr_code(
+        code_template,
+        attr_list,
+        df_var_name,
+        st_mark,
+        ed_mark,
+        intent_blocks
+):
+    attr_code_str_base = " " * 4 * intent_blocks + f"self.%s = {df_var_name}['%s']\n"
+    st_index = code_template.index(st_mark)
+    ed_index = code_template.index(ed_mark)
+    insert_code = [attr_code_str_base % (attr, attr) for attr in attr_list]
+    res_code = code_template[: st_index + 1] + insert_code + code_template[ed_index:]
+    return res_code
+
+
 def test_dash_name_to_camel():
     s = 'table_name_example'
     print(dash_name_to_camel(s))
