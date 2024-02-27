@@ -1,6 +1,11 @@
+import os.path
+import traceback
+
 import pandas as pd
 from sqlalchemy import text
 
+from helper_function.hf_file import mkdir
+from sqlalchemy import inspect
 
 def pd_to_db_check_pk(
         df: pd.DataFrame, 
@@ -98,3 +103,29 @@ def pd_to_db_check_pk(
         df_new.to_sql(name=name, con=con, schema=schema, if_exists='append', index=index)
 
     return df_conflict
+
+
+def export_xl(output_folder, con, schema, table_names=None):
+
+    if not os.path.exists(output_folder):
+        mkdir(output_folder)
+
+    sql_template = 'select * from %s.%s'
+
+    if table_names is None:
+        insp = inspect(con)
+        table_names = insp.get_table_names(schema=schema)
+
+    for table_name in table_names:
+        sql = sql_template % (schema, table_name)
+        file_path = os.path.join(output_folder, table_name + '.xlsx')
+        try:
+
+            df = pd.read_sql(sql=sql, con=con)
+        except Exception as e:
+            print(traceback.format_exc(e))
+            continue
+
+        df.to_excel(file_path, index=False)
+
+        print(f'table {table_name} exported. path: {file_path}')
