@@ -1,7 +1,6 @@
 import json
 from hf_string import to_json_str
 from typing import Set, List
-from copy import copy
 
 
 class JsonObj:
@@ -74,15 +73,15 @@ class JsonObj:
         )
 
 
-def get_nodes(relation_table):
-    res = list(set(sum(relation_table, start=[])))
+def get_nodes(relation_info):
+    res = list(set(sum(relation_info, start=[])))
     res = sorted([item for item in res if item])
     return res
 
 
-def get_graph(relation_table):
+def get_graph(relation_info):
     graph = dict()
-    for node, parent in relation_table:
+    for node, parent in relation_info:
         if parent is not None:
             try:
                 graph[node].add(parent)
@@ -123,9 +122,9 @@ def depth_first_search(
     stack.append(node)
 
 
-def topological_sort(relation_table: list, reverse=False) -> List[str]:
-    nodes = get_nodes(relation_table=relation_table)
-    graph = get_graph(relation_table=relation_table)
+def topological_sort(relation_info: list, reverse=False) -> List[str]:
+    nodes = get_nodes(relation_info=relation_info)
+    graph = get_graph(relation_info=relation_info)
     visited = set()
     stack = []
     for node in nodes:

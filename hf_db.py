@@ -8,7 +8,7 @@ from hf_file import mkdir
 from sqlalchemy import inspect
 
 
-def pd_to_db_check_pk(
+def df_to_db(
         df: pd.DataFrame, 
         name: str, 
         check_cols=None, 
@@ -18,24 +18,28 @@ def pd_to_db_check_pk(
         index=False
 ):
 
-    sql = 'select %s from %s' % (', '.join(check_cols), name)
-    print(sql)
-    data_exists = pd.read_sql(sql=sql, con=con)
+    if check_cols is not None:
+        sql = f'select {", ".join(check_cols)} from {name}'
+        print(sql)
+        data_exists = pd.read_sql(sql=sql, con=con)
+        not_in_str = ' & '.join([
+            f'~df["{check_field}"].isin(data_exists["{check_field}"])'
+            for check_field in check_cols
+        ])
+        or_in_str = ' | '.join([
+            f'df["{check_field}"].isin(data_exists["{check_field}"])'
+            for check_field in check_cols
+        ])
 
-    not_in_str = ' & '.join([
-        f'~df["{check_field}"].isin(data_exists["{check_field}"])'
-        for check_field in check_cols
-    ])
-    or_in_str = ' | '.join([
-        f'df["{check_field}"].isin(data_exists["{check_field}"])'
-        for check_field in check_cols
-    ])
-    try:
-        df_new = eval('df[%s]' % not_in_str)
-    except KeyError:
-        print()
-        raise KeyError
-    df_conflict = eval('df[%s]' % or_in_str)
+        try:
+            df_new = eval('df[%s]' % not_in_str)
+        except KeyError:
+            print()
+            raise KeyError
+        df_conflict = eval('df[%s]' % or_in_str)
+    else:
+        df_new = df.copy()
+        df_conflict = pd.read_sql(sql=f'select * from {name} limit 0', con=con)
 
     if if_conflict == 'keep':
         df_new.to_sql(name=name, con=con, schema=schema, if_exists='append', index=index)
@@ -126,8 +130,8 @@ def export_xl(output_folder, con, schema, table_names=None):
 
             df = pd.read_sql(sql=sql, con=con)
         except Exception as e:
-            print(traceback.format_exc(e))
-            continue
+            print(traceback.format_exc())
+            raise e
 
         df.to_excel(file_path, index=False)
 
