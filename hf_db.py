@@ -12,7 +12,7 @@ def pd_to_db_check_pk(
         df: pd.DataFrame, 
         name: str, 
         check_cols=None, 
-        if_conflict='ignore',
+        if_conflict='skip',
         con=None, 
         schema=None, 
         index=False
@@ -100,6 +100,8 @@ def pd_to_db_check_pk(
                 row.to_sql(name=name, con=con, schema=schema, if_exists='append', index=False)
 
     else:
+        print('skipping dup data:')
+        print(df_conflict)
         df_new = pd.DataFrame(df)
         df_new.to_sql(name=name, con=con, schema=schema, if_exists='append', index=index)
 
