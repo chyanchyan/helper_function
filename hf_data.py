@@ -1,5 +1,5 @@
 import json
-from helper_function.hf_string import to_json_str
+from hf_string import to_json_str
 from typing import Set, List
 from copy import copy
 
