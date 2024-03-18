@@ -1,7 +1,7 @@
 import time
 from tqdm import tqdm
 import line_profiler
-from hf_array import flatten
+from mint.helper_function.hf_array import flatten
 from copy import copy, deepcopy
 
 

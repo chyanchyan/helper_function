@@ -1,5 +1,5 @@
 import json
-from hf_string import to_json_str
+from mint.helper_function.hf_string import to_json_str
 from typing import Set, List
 
 
@@ -135,3 +135,37 @@ def topological_sort(relation_info: list, reverse=False) -> List[str]:
         return [node for node in reversed(stack)]
     else:
         return [node for node in stack]
+
+
+def construct_nested_dict(path_list):
+    res = {'order': [], 'nodes': {}}
+    sub_path_list = {}
+    for path in path_list:
+        nodes = path.split('/')
+        if nodes[0] not in res['order']:
+            res['order'].append(nodes[0])
+            sub_path_list[nodes[0]] = []
+        if len(nodes) > 1:
+            sub_path_list[nodes[0]].append('/'.join(nodes[1:]))
+
+    for k, v in sub_path_list.items():
+        res['nodes'][k] = construct_nested_dict(path_list=v)
+
+    return res
+
+
+def test_construct_nested_dict():
+    path_list = [
+        'a1/a1-b1/a1-b1-c1',
+        'a1/a1-b1/a1-b1-c2',
+        'a1/a1-b2/a1-b2-c1',
+        'a2/a2-b1/c1',
+        'a2/a2-b2/c2',
+    ]
+
+    res = construct_nested_dict(path_list=path_list)
+    print(to_json_str(res))
+
+
+if __name__ == '__main__':
+    test_construct_nested_dict()

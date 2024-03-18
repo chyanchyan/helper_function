@@ -1,9 +1,13 @@
 import time
 import traceback
 
+import pandas
 import pymysql.err
 import warnings
 from sqlalchemy.exc import PendingRollbackError
+from flask import jsonify
+from mint.helper_function.hf_string import to_json_str
+from copy import deepcopy
 
 warnings.filterwarnings("ignore")
 
@@ -33,7 +37,8 @@ def api_status_wrapper(func):
         api['data'] = data
         api['status'] = status
         api['statusInfo'] = status_info
-        return api
+        print(to_json_str(api))
+        return jsonify(api)
 
     wrapper.__name__ = func.__name__
 
@@ -113,3 +118,32 @@ def timer_wrapper(sub):
     wrapper.__name__ = sub.__name__
 
     return wrapper
+
+
+def byval_param_wrapper(func):
+    def wrapper(*args, **kwargs):
+        args_copy = deepcopy(args)
+        kwargs_copy = deepcopy(kwargs)
+        res = func(*args_copy, **kwargs_copy)
+        return res
+
+    wrapper.__name__ = func.__name__
+
+    return wrapper
+
+
+@byval_param_wrapper
+def test_func(df):
+    df['a'] = [1]
+    return df
+
+
+def test_byval():
+    df = pandas.DataFrame(columns=['b'])
+    df['b'] = [2]
+    test_func(df)
+    print(df)
+
+
+if __name__ == '__main__':
+    test_byval()
