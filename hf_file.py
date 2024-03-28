@@ -1,7 +1,7 @@
 import os
 from datetime import datetime as dt
 from shutil import copy
-from mint.helper_function.hf_number import is_int
+from hf_number import is_int
 
 
 def mkdir(path):
