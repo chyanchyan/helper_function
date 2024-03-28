@@ -8,3 +8,4 @@ pymysql
 sqlalchemy
 rarfile
 line_profiler
+rarfile
