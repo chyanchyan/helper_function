@@ -3,9 +3,9 @@ from numpy import datetime64
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
 
-from helper_function.math_function import crop, grid_pos
+from mint.helper_function.hf_math import crop, grid_pos
 
-from helper_function.number_process import is_number
+from mint.helper_function.hf_number import is_number
 import re
 
 

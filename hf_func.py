@@ -1,8 +1,6 @@
 import time
 from tqdm import tqdm
 import line_profiler
-from mint.helper_function.hf_array import flatten
-from copy import copy, deepcopy
 
 
 def timecost(runningtime=1):
@@ -86,18 +84,4 @@ def profile_line_by_line(func):
 
     return wrapper
 
-
-def cacheing(func):
-    def wrapper(self, *args, **kwargs):
-        key = [value for key, value in kwargs.items()] + list(args)
-        key = [str(item) for item in flatten(key)]
-        key = tuple([func.__name__] + key)
-
-        if key in self.cache:
-            res = deepcopy(self.cache[key])
-        else:
-            res = func(self, *args, **kwargs)
-            self.cache[key] = res
-        return res
-    return wrapper
 

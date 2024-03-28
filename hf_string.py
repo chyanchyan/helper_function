@@ -110,6 +110,16 @@ def list_to_attr_code(
     return res_code
 
 
+def strip_block_intends(s):
+    lines = s.split('\n')
+    first_line = lines[0]
+    first_line_striped = first_line.lstrip(' ')
+    intends = len(first_line) - len(first_line_striped)
+    res = [line[intends:] for line in lines]
+    res = '\n'.join(res)
+    return res
+
+
 def test_dash_name_to_camel():
     s = 'table_name_example'
     print(dash_name_to_camel(s))

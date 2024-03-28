@@ -31,8 +31,37 @@ def migration_pandas(engine, data_path, schema, if_exists):
     name = os.path.basename(data_path)[:-5]
     try:
         data = pd.read_excel(data_path, index_col=False)
-        print(data)
-        data.to_sql(
+
+        regular_cols = [col for col in data.columns.tolist() if col[:3] != 'dv_']
+        dv_cols = [col for col in data.columns.tolist() if col[:3] == 'dv_']
+        data_to_db = data[regular_cols]
+
+        if name == 'project':
+            table_name = '项目信息'
+            row_index = 'name'
+        elif name == 'project_level':
+            table_name = '项目分级信息'
+            row_index = 'name'
+        elif name == 'project_change':
+            table_name = '项目分级变动信息'
+            row_index = 'project_level_name'
+        else:
+            table_name = name
+            row_index = 'id'
+        if len(dv_cols) > 0:
+            for i, r in data.iterrows():
+                for col in dv_cols:
+                    if not pd.isna(r[col]):
+                        print(
+                            f'表：{table_name} \n'
+                            f'行：{r[row_index]} \n'
+                            f'列：{col.strip("dv_")} \n'
+                            f'自： {data_to_db.loc[i, col.strip("dv_")]} \n'
+                            f'更新为：{r[col]} \n')
+                        print('*' * 50)
+                        data_to_db.loc[i, col.strip('dv_')] = r[col]
+
+        data_to_db.to_sql(
             name=name,
             con=engine,
             schema=schema,

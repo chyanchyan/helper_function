@@ -18,8 +18,8 @@ def df_to_db(
         index=False
 ):
 
-    if check_cols is not None:
-        sql = f'select {", ".join(check_cols)} from {name}'
+    if check_cols is not None and len(check_cols) > 0:
+        sql = f'select {", ".join(check_cols)} from {schema}.{name}'
         print(sql)
         data_exists = pd.read_sql(sql=sql, con=con)
         not_in_str = ' & '.join([
@@ -39,7 +39,7 @@ def df_to_db(
         df_conflict = eval('df[%s]' % or_in_str)
     else:
         df_new = df.copy()
-        df_conflict = pd.read_sql(sql=f'select * from {name} limit 0', con=con)
+        df_conflict = pd.read_sql(sql=f'select * from {schema}.{name} limit 0', con=con)
 
     if if_conflict == 'keep':
         df_new.to_sql(name=name, con=con, schema=schema, if_exists='append', index=index)
@@ -70,7 +70,10 @@ def df_to_db(
                 [f'`{check_field}` = "{row[check_field].replace("%", "%%")}"' for check_field in check_cols
                  if not pd.isna(row[check_field]) and row[check_field]]
             )
-            sql = f'select * from {name} where {c}'
+            if len(c) > 0:
+                sql = f'select * from {schema}.{name} where {c}'
+            else:
+                sql = f'select * from {schema}.{name}'
             ori_row = pd.read_sql(sql=sql, con=con)
             if len(ori_row) == 1:
                 sqls = []
