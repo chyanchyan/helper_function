@@ -6,7 +6,7 @@ import pymysql.err
 import warnings
 from sqlalchemy.exc import PendingRollbackError
 from flask import jsonify
-from hf_string import to_json_str
+from .hf_string import to_json_str
 from copy import deepcopy
 
 warnings.filterwarnings("ignore")
