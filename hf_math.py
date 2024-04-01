@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import itertools
 from copy import copy
-from numba import cuda
 
 
 def grid_pos(n, width):

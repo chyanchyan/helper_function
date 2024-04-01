@@ -4,7 +4,7 @@ import traceback
 import pandas as pd
 from sqlalchemy import text
 
-from hf_file import mkdir
+from .hf_file import mkdir
 from sqlalchemy import inspect
 
 
