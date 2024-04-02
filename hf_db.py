@@ -3,8 +3,6 @@ import traceback
 
 import pandas as pd
 from sqlalchemy import text
-
-
 from sqlalchemy import inspect
 
 if 'helper_function' in __name__.split('.'):

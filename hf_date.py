@@ -11,7 +11,6 @@ else:
     from hf_math import crop, grid_pos
     from hf_number import is_number
 
-
 weekday_abbr = {
     'mon': 0,
     'tue': 1,
