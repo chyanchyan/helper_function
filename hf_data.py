@@ -1,6 +1,9 @@
 import json
-from mint.helper_function.hf_string import to_json_str
 from typing import Set, List
+if 'helper_function' in __name__.split('.'):
+    from .hf_string import to_json_str
+else:
+    from hf_string import to_json_str
 
 
 class JsonObj:

@@ -1,13 +1,15 @@
 import time
 import traceback
-
 import pandas
 import pymysql.err
 import warnings
 from sqlalchemy.exc import PendingRollbackError
 from flask import jsonify
-from mint.helper_function.hf_string import to_json_str
 from copy import deepcopy
+if 'helper_function' in __name__.split('.'):
+    from .hf_string import to_json_str
+else:
+    from hf_string import to_json_str
 
 warnings.filterwarnings("ignore")
 

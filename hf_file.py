@@ -1,7 +1,10 @@
 import os
 from datetime import datetime as dt
 from shutil import copy
-from mint.helper_function.hf_number import is_int
+if 'helper_function' in __name__.split('.'):
+    from .hf_number import is_int
+else:
+    from hf_number import is_int
 
 
 def mkdir(path):

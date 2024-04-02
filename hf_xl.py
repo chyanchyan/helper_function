@@ -1,9 +1,9 @@
 import os
-from openpyxl.utils import get_column_letter
+import traceback
 import pandas as pd
 import numpy as np
+from openpyxl.utils import get_column_letter
 from sqlalchemy.exc import OperationalError
-import traceback
 
 
 def fit_col_width(writer, df, sheet_name):

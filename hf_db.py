@@ -4,8 +4,13 @@ import traceback
 import pandas as pd
 from sqlalchemy import text
 
-from hf_file import mkdir
+
 from sqlalchemy import inspect
+
+if 'helper_function' in __name__.split('.'):
+    from .hf_file import mkdir
+else:
+    from hf_file import mkdir
 
 
 def df_to_db(
