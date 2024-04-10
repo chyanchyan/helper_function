@@ -88,9 +88,11 @@ def udf_format(value, f):
     return res
 
 
-def dash_name_to_camel(s):
+def dash_name_to_camel(s, include_first_letter=True):
     eles = s.split('_')
     res = ''.join([str.upper(ele[0]) + ele[1:] for ele in eles])
+    if not include_first_letter:
+        res = str.lower(res[0]) + res[1:]
     return res
 
 

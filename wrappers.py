@@ -39,7 +39,7 @@ def api_status_wrapper(func):
         api['data'] = data
         api['status'] = status
         api['statusInfo'] = status_info
-        print(to_json_str(api))
+        # print(to_json_str(api))
         return jsonify(api)
 
     wrapper.__name__ = func.__name__

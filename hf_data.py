@@ -1,5 +1,7 @@
 import json
 from typing import Set, List
+import numpy as np
+
 if 'helper_function' in __name__.split('.'):
     from .hf_string import to_json_str
 else:
@@ -74,6 +76,22 @@ class JsonObj:
         return json.loads(
             self.to_json(include_attrs=include_attrs, exclude_attrs=exclude_attrs)
         )
+
+
+def replace_nan_with_none(d):
+    if isinstance(d, dict):
+        for key, value in d.items():
+            if isinstance(value, dict) or isinstance(value, list):
+                d[key] = replace_nan_with_none(value)  # 递归调用
+            elif isinstance(value, float) and np.isnan(value):
+                d[key] = None
+    elif isinstance(d, list):
+        for i, item in enumerate(d):
+            if isinstance(item, dict) or isinstance(item, list):
+                d[i] = replace_nan_with_none(item)  # 递归调用
+            elif isinstance(item, float) and np.isnan(item):
+                d[i] = None
+    return d
 
 
 def get_nodes(relation_info):
