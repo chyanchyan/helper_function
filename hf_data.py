@@ -8,6 +8,50 @@ else:
     from hf_string import to_json_str
 
 
+class Infinite:
+    def __init__(self, positive=True):
+        self.positive = positive
+
+    def __neg__(self):
+        return Infinite(positive=not self.positive)
+
+    def __add__(self, other):
+        return Infinite(positive=self.positive)
+
+    def __sub__(self, other):
+        return Infinite(positive=self.positive)
+
+    def __iadd__(self, other):
+        return Infinite(positive=self.positive)
+
+    def __isub__(self, other):
+        return Infinite(positive=self.positive)
+
+    def __mul__(self, other):
+        return Infinite(positive=self.positive * (other > 0))
+
+    def __gt__(self, other):
+        return self.positive
+
+    def __lt__(self, other):
+        return not self.positive
+
+    def __ge__(self, other):
+        return self.positive
+
+    def __le__(self, other):
+        return not self.positive
+
+    def __abs__(self):
+        return Infinite(positive=True)
+
+    def __repr__(self):
+        return 'inf.'
+
+    def __str__(self):
+        return self.__repr__()
+
+
 class JsonObj:
     def __init__(self, *args, **kwargs):
         pass
