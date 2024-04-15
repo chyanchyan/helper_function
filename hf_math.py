@@ -14,7 +14,12 @@ def strip_cover(stp_set_1, stp_set_2, freq=1):
     max_ed = max([item[1] for item in stp_set_1] + [item[1] for item in stp_set_2])
     rg = range(int(min_st), int(max_ed // freq + ((max_ed % freq) > 0)), freq)
 
-    print(rg)
+    return rg
+
+
+def dates_to_sts_exps(dates):
+    ds = list(dates)
+    return list(zip(ds[:-1], ds[1:]))
 
 
 def crop(p11, p12, p21, p22):
