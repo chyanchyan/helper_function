@@ -1,6 +1,7 @@
 import time
 from tqdm import tqdm
 import line_profiler
+import traceback
 
 
 def timecost(runningtime=1):
@@ -85,3 +86,9 @@ def profile_line_by_line(func):
     return wrapper
 
 
+def error_handler(response='', data='', exc=''):
+    print(data)
+    print(response)
+    if len(exc) > 0:
+        traceback.print_exc()
+        print(str(exc))

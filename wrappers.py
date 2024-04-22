@@ -22,6 +22,34 @@ def error_retry(e, trail=0, sleep_time=1):
     time.sleep(sleep_time)
 
 
+def sql_retry_wrapper(con):
+    def _(func):
+        def wrapper(*args, **kwargs):
+            trail = 0
+            while trail < 30:
+                try:
+                    res = func(*args, **kwargs)
+                    break
+                except PendingRollbackError as e:
+                    print('waiting rolling back')
+                    con.rollback()
+                    error_retry(e=e, trail=trail)
+                except pymysql.err.OperationalError as e:
+                    print('operational error raised')
+                    error_retry(e=e, trail=trail)
+            else:
+                print('waiting rolling back time limit exceeds')
+                raise PendingRollbackError
+
+            return res
+
+        wrapper.__name__ = func.__name__
+
+        return wrapper
+
+    return _
+
+
 def api_status_wrapper(func):
     def wrapper(*args, **kwargs):
         status = 0
@@ -40,30 +68,6 @@ def api_status_wrapper(func):
         api['status'] = status
         api['statusInfo'] = status_info
         return jsonify(api)
-
-    wrapper.__name__ = func.__name__
-
-    return wrapper
-
-
-def sql_retry_wrapper(func):
-    def wrapper(*args, **kwargs):
-        trail = 0
-        while trail < 30:
-            try:
-                res = func(*args, **kwargs)
-                break
-            except PendingRollbackError as e:
-                print('waiting rolling back')
-                error_retry(e=e, trail=trail)
-            except pymysql.err.OperationalError as e:
-                print('operational error raised')
-                error_retry(e=e, trail=trail)
-        else:
-            print('waiting rolling back time limit exceeds')
-            raise PendingRollbackError
-
-        return res
 
     wrapper.__name__ = func.__name__
 

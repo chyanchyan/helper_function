@@ -122,6 +122,26 @@ def strip_block_intends(s):
     return res
 
 
+def to_chi_yes_no(raw_input):
+    if isinstance(raw_input, str):
+        if '是' in raw_input and '不是' not in raw_input:
+            return '是'
+        else:
+            return '否'
+    elif isinstance(raw_input, (float, int)):
+        try:
+            return ['否', '是'][int(raw_input)]
+        except IndexError:
+            return '否'
+
+
+def nan_to_empty_string(value):
+    if pd.isna(value):
+        return ''
+    else:
+        return value
+
+
 def test_dash_name_to_camel():
     s = 'table_name_example'
     print(dash_name_to_camel(s))
