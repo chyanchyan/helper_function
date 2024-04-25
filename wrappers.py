@@ -67,7 +67,9 @@ def api_status_wrapper(func):
         api['data'] = data
         api['status'] = status
         api['statusInfo'] = status_info
-        return jsonify(api)
+        res = jsonify(api)
+        res.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return res
 
     wrapper.__name__ = func.__name__
 
