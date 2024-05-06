@@ -1,10 +1,14 @@
 import json
 from typing import Set, List
+from datetime import datetime as dt
+import pandas as pd
 import numpy as np
 from typing import Union
 
 import pandas as pd
 from pandas._typing import AggFuncType
+
+
 
 
 if 'helper_function' in __name__.split('.'):
@@ -277,6 +281,46 @@ def pivot_table(
     res.columns = cols
 
     return res
+
+
+def fill_na(obj, replace=''):
+    fill_list = []
+    for key, item in obj.items():
+        try:
+            if pd.isna(item) and not item == pd.NaT:
+                fill_list.append(key)
+        except ValueError:
+            print(obj)
+            raise ValueError
+
+    for item in fill_list:
+        obj[item] = replace
+
+    return obj
+
+
+def fill_nat(obj, replace=''):
+    fill_list = []
+    for key, item in obj.items():
+        if item == pd.NaT:
+            fill_list.append(key)
+
+    for item in fill_list:
+        obj[item] = replace
+
+    return obj
+
+
+def replace_datetime(obj):
+    fill_list = []
+    for key, item in obj.items():
+        if isinstance(item, dt):
+            fill_list.append(key)
+
+    for item in fill_list:
+        obj[item] = obj[item].strftime('%Y-%m-%d %H:%M:%S')
+
+    return obj
 
 
 def test_construct_nested_dict():
