@@ -4,6 +4,7 @@ import numpy as np
 from typing import Generator
 from datetime import datetime as dt
 from sqlalchemy import Integer, BINARY, CHAR, Column, Date, DateTime, Float, String, Table, Text
+from copy import copy
 
 
 class UDJsonEncoder(json.JSONEncoder):
@@ -119,6 +120,43 @@ def strip_block_intends(s):
     intends = len(first_line) - len(first_line_striped)
     res = [line[intends:] for line in lines]
     res = '\n'.join(res)
+    return res
+
+
+def get_ext(index):
+    if isinstance(index, list):
+        res = [get_ext(s)[-1] for s in index]
+    elif isinstance(index, str):
+        try:
+            res = [index[index.index('['): index.index(']') + 1]]
+        except ValueError:
+            res = ['']
+    elif isinstance(index, tuple):
+        res = get_ext(index[0])
+    elif index is None:
+        res = ['']
+    else:
+        print('invalid Type for index: ')
+        print(index)
+        raise TypeError
+
+    return res
+
+
+def set_ext(index, original, target):
+    if isinstance(index, str):
+        if original == '':
+            res = copy(index)
+        else:
+            res = index.replace(original, target)
+    elif isinstance(index, list):
+        res = [set_ext(item, original, target) for item in index]
+    elif isinstance(index, tuple):
+        res = tuple([set_ext(index[0], original, target), *index[1:]])
+    else:
+        print('invalid Type for index: ')
+        print(index)
+        raise TypeError
     return res
 
 

@@ -1,11 +1,16 @@
 import json
 from typing import Set, List
 import numpy as np
+from typing import Union
+
+import pandas as pd
+from pandas._typing import AggFuncType
+
 
 if 'helper_function' in __name__.split('.'):
-    from .hf_string import to_json_str
+    from .hf_string import to_json_str, get_ext, set_ext
 else:
-    from hf_string import to_json_str
+    from hf_string import to_json_str, get_ext, set_ext
 
 
 class Infinite:
@@ -219,6 +224,61 @@ def construct_nested_dict(path_list):
     return res
 
 
+def pivot_table(
+        data: pd.DataFrame,
+        index: Union[list, str] = None,
+        values: Union[list, str] = None,
+        aggfunc: AggFuncType = None
+):
+    if index is None:
+        index_local = None
+    elif isinstance(index, str):
+        index_local = [index]
+    elif isinstance(index, list):
+        index_local = list(index)
+    else:
+        print(f'invalid index type: {type(index)}')
+        print(index)
+        raise TypeError
+
+    if values is None:
+        values = data.columns.tolist()[len(index_local):]
+    elif isinstance(values, str):
+        values = [values]
+
+    if aggfunc is None:
+        aggfunc = sum
+
+    data_exts = set(get_ext(values))
+    res_ext = get_ext(index_local)[-1]
+
+    if index_local is None:
+        res = pd.DataFrame(data=[data[values].sum(axis=0)], index=['total'])
+    else:
+        try:
+            res = data.pivot_table(
+                index=index_local,
+                values=values,
+                aggfunc=aggfunc
+            ).reset_index()
+        except KeyError:
+            for item in data.columns.tolist():
+                print(item)
+            print(index_local)
+            print(values)
+            raise KeyError
+
+        if len(res) == 0:
+            res = pd.DataFrame(columns=list(index_local) + list(values))
+
+    cols = res.columns.tolist()
+    for data_ext in data_exts:
+        cols = set_ext(cols, data_ext, res_ext)
+    res.columns = cols
+
+    return res
+
+
 def test_construct_nested_dict():
     path_list = [
         'a1/a1-b1/a1-b1-c1',
@@ -232,5 +292,28 @@ def test_construct_nested_dict():
     print(to_json_str(res))
 
 
+def test_pivot_table():
+    data = pd.DataFrame(
+        columns=['a[p]', 'b[c]', 'c'],
+        data=[
+            ['1', 11, 111],
+            ['2', 12, 112],
+            ['3', 13, 113],
+            ['4', 14, 114],
+        ]
+    )
+    print(data)
+    print(pivot_table(
+        data=data,
+        index=None,
+        values=['c']
+    ))
+    print(pivot_table(
+        data=data,
+        index='a[p]',
+        values=['c']
+    ))
+
+
 if __name__ == '__main__':
-    test_construct_nested_dict()
+    test_pivot_table()
