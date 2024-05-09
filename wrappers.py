@@ -29,6 +29,7 @@ def sql_retry_wrapper(con):
             while trail < 30:
                 try:
                     res = func(*args, **kwargs)
+                    print(f'{func.__name__} done')
                     break
                 except PendingRollbackError as e:
                     print('waiting rolling back')
