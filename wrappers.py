@@ -33,10 +33,7 @@ def sql_retry_wrapper(con, sleep_time=0):
                     print(f'{func.__name__} done')
                     break
                 except PendingRollbackError as e:
-                    print(f'waiting rolling back {str(con.info)}')
-
-                    # con.begin()
-                    # con.execute("ROLLBACK")
+                    print(f'waiting rolling back {str(con)}')
                     con.rollback()
                     time.sleep(sleep_time)
                     trail = error_retry(e=e, trail=trail, sleep_time=sleep_time)
