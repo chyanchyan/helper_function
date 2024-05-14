@@ -3,7 +3,7 @@ import traceback
 import pandas
 import pymysql.err
 import warnings
-from sqlalchemy.exc import PendingRollbackError
+from sqlalchemy.exc import PendingRollbackError, InterfaceError, OperationalError, InternalError
 from flask import jsonify
 from copy import deepcopy
 if 'helper_function' in __name__.split('.'):
@@ -17,27 +17,38 @@ warnings.filterwarnings("ignore")
 def error_retry(e, trail=0, sleep_time=1):
     print(traceback.format_exc())
     print(repr(e))
-    print('doing it again..')
+    print(f'doing it again... (trail: {trail} / 10)')
     trail += 1
     time.sleep(sleep_time)
+    return trail
 
 
-def sql_retry_wrapper(con):
+def sql_retry_wrapper(con, sleep_time=0):
     def _(func):
         def wrapper(*args, **kwargs):
             trail = 0
-            while trail < 30:
+            while trail < 10:
                 try:
                     res = func(*args, **kwargs)
                     print(f'{func.__name__} done')
                     break
                 except PendingRollbackError as e:
-                    print('waiting rolling back')
+                    print(f'waiting rolling back {str(con.info)}')
+
+                    # con.begin()
+                    # con.execute("ROLLBACK")
                     con.rollback()
-                    error_retry(e=e, trail=trail)
-                except pymysql.err.OperationalError as e:
+                    time.sleep(sleep_time)
+                    trail = error_retry(e=e, trail=trail, sleep_time=sleep_time)
+                except OperationalError as e:
                     print('operational error raised')
-                    error_retry(e=e, trail=trail)
+                    trail = error_retry(e=e, trail=trail, sleep_time=sleep_time)
+                except InterfaceError as e:
+                    print('InterfaceError error raised')
+                    trail = error_retry(e=e, trail=trail, sleep_time=sleep_time)
+                except InternalError as e:
+                    print('InternalError error raised')
+                    trail = error_retry(e=e, trail=trail, sleep_time=sleep_time)
             else:
                 print('waiting rolling back time limit exceeds')
                 raise PendingRollbackError
