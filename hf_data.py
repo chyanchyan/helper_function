@@ -318,7 +318,7 @@ def replace_datetime(obj):
             fill_list.append(key)
 
     for item in fill_list:
-        obj[item] = obj[item].strftime('%Y-%m-%d %H:%M:%S')
+        obj[item] = obj[item].strftime('%F %T')
 
     return obj
 

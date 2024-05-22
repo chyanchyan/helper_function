@@ -13,7 +13,7 @@ class UDJsonEncoder(json.JSONEncoder):
         if isinstance(obj, dt):
             if pd.isna(obj):
                 return None
-            return obj.strftime("%Y-%m-%d")
+            return obj.strftime("%F")
         elif isinstance(obj, pd.Series):
             obj = obj.replace(np.nan, None)
             return obj.tolist()

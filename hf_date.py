@@ -79,7 +79,7 @@ def crop_date(st1, ed1, st2, ed2):
 
 def validate(date_text):
     try:
-        if date_text != dt.strptime(date_text, "%Y-%m-%d").strftime('%Y-%m-%d'):
+        if date_text != dt.strptime(date_text, "%F").strftime('%F'):
             raise ValueError
         return True
     except ValueError:
@@ -258,7 +258,7 @@ def get_work_day(date, calendar, days):
 
 
 def get_date_range_str(date_range):
-    s = ', '.join(["'%s'" % item.strftime('%Y-%m-%d') for item in date_range])
+    s = ', '.join(["'%s'" % item.strftime('%F') for item in date_range])
     return s
 
 
