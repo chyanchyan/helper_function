@@ -6,6 +6,7 @@ import warnings
 from sqlalchemy.exc import PendingRollbackError, InterfaceError, OperationalError, InternalError
 from flask import jsonify
 from copy import deepcopy
+from mint.helper_function.hf_string import to_json_obj, to_json_str
 
 warnings.filterwarnings("ignore")
 
@@ -72,8 +73,9 @@ def api_status_wrapper(func):
         api['data'] = data
         api['status'] = status
         api['statusInfo'] = status_info
-        res = jsonify(api)
-        res.headers['Content-Type'] = 'application/json; charset=utf-8'
+        res = to_json_str(api)
+        res = to_json_obj(res)
+        res['Content-Type'] = 'application/json; charset=utf-8'
         return res
 
     wrapper.__name__ = func.__name__

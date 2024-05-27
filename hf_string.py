@@ -37,6 +37,8 @@ class UDJsonEncoder(json.JSONEncoder):
             return res
         elif isinstance(obj, np.datetime64):
             return str(obj)[:10]
+        elif isinstance(obj, np.int64):
+            return int(obj)
         elif isinstance(obj, Generator):
             return [item for item in obj]
         elif isinstance(obj, (Integer, BINARY, CHAR, Column, Date, DateTime, Float, String, Table, Text)):

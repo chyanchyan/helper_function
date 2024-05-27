@@ -323,6 +323,24 @@ def replace_datetime(obj):
     return obj
 
 
+def df_to_ant_table_options(df: pd.DataFrame, titles=None, data_types=None):
+    if titles is None:
+        titles = df.columns.tolist()
+    if data_types is None:
+        data_types = ['String' for _ in titles]
+    columns = [
+        {'title': titles[i], 'dataIndex': col, 'key': col, 'dataType': data_types[i]}
+        for i, col in enumerate(df.columns)
+    ]
+    res = {
+        'columns': columns,
+        'dataSource': [
+            {'key': i, **row} for i, row in enumerate(df.to_dict(orient='records'))
+        ]
+    }
+    return res
+
+
 def test_construct_nested_dict():
     path_list = [
         'a1/a1-b1/a1-b1-c1',
