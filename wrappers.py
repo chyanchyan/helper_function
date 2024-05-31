@@ -146,6 +146,18 @@ def byval_param_wrapper(func):
     return wrapper
 
 
+def index_wrapper(func):
+    def wrapper(*args, **kwargs):
+        res = func(*args, **kwargs)
+        if 'index' in kwargs:
+            if kwargs['index'] is None:
+                res.index = ['total']
+        return res
+
+    wrapper.__name__ = func.__name__
+
+    return wrapper
+
 @byval_param_wrapper
 def test_func(df):
     df['a'] = [1]

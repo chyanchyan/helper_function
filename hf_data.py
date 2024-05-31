@@ -1,15 +1,12 @@
 import json
 from typing import Set, List
 from datetime import datetime as dt
-import pandas as pd
 import numpy as np
-from typing import Union
 
 import pandas as pd
 from pandas._typing import AggFuncType
-
-
-
+from collections.abc import Sequence
+from copy import deepcopy
 
 if 'helper_function' in __name__.split('.'):
     from .hf_string import to_json_str, get_ext, set_ext
@@ -156,13 +153,10 @@ def get_nodes(relation_info):
 def get_graph(relation_info):
     graph = dict()
     for node, parent in relation_info:
-        if parent is not None:
-            try:
-                graph[node].add(parent)
-            except KeyError:
-                graph[node] = {parent}
-        else:
+        if node not in graph:
             graph[node] = set()
+        if parent is not None:
+            graph[node].add(parent)
     for k in graph.keys():
         graph[k] = sorted(list(graph[k]))
     return graph
@@ -190,9 +184,12 @@ def depth_first_search(
         stack: List[str]
 ):
     visited.add(node)
-    for parent in graph[node]:
-        if parent not in visited:
-            depth_first_search(parent, graph, visited, stack)
+    try:
+        for parent in graph[node]:
+            if parent not in visited:
+                depth_first_search(parent, graph, visited, stack)
+    except KeyError:
+        print()
     stack.append(node)
 
 
@@ -228,25 +225,21 @@ def construct_nested_dict(path_list):
     return res
 
 
-def pivot_table(
-        data: pd.DataFrame,
-        index: Union[list, str] = None,
-        values: Union[list, str] = None,
-        aggfunc: AggFuncType = None
-):
-    if index is None:
-        index_local = None
-    elif isinstance(index, str):
+def pivot_table(data, index=None, values=None, aggfunc: AggFuncType = None):
+
+    if isinstance(index, str):
         index_local = [index]
     elif isinstance(index, list):
-        index_local = list(index)
+        index_local = deepcopy(index)
+    elif index is None:
+        index_local = None
     else:
         print(f'invalid index type: {type(index)}')
         print(index)
         raise TypeError
 
     if values is None:
-        values = data.columns.tolist()[len(index_local):]
+        values = [item for item in data.columns.tolist() if item not in index_local]
     elif isinstance(values, str):
         values = [values]
 
@@ -254,10 +247,10 @@ def pivot_table(
         aggfunc = sum
 
     data_exts = set(get_ext(values))
-    res_ext = get_ext(index_local)[-1]
+    res_ext = get_ext(index_local)[-1]  # 取最后一个汇总字段的后缀
 
     if index_local is None:
-        res = pd.DataFrame(data=[data[values].sum(axis=0)], index=['total'])
+        res = pd.DataFrame([data[values].sum(axis=0)])
     else:
         try:
             res = data.pivot_table(
@@ -265,7 +258,8 @@ def pivot_table(
                 values=values,
                 aggfunc=aggfunc
             ).reset_index()
-        except KeyError:
+        except KeyError as e:
+            print(e)
             for item in data.columns.tolist():
                 print(item)
             print(index_local)
@@ -341,6 +335,19 @@ def df_to_ant_table_options(df: pd.DataFrame, titles=None, data_types=None):
     return res
 
 
+def get_tuple_cols(col_name: str, seq: Sequence | pd.DataFrame | pd.Series | pd.Index):
+    if not isinstance(seq, Sequence | pd.DataFrame | pd.Series | pd.Index):
+        return tuple([col_name])
+
+    if len(seq) == 0:
+        return tuple([col_name])
+
+    if isinstance(seq[0], Sequence | pd.DataFrame | pd.Series | pd.Index):
+        return [(col_name, *item) for item in seq]
+    else:
+        return [(col_name, item) for item in seq]
+
+
 def test_construct_nested_dict():
     path_list = [
         'a1/a1-b1/a1-b1-c1',
@@ -377,5 +384,12 @@ def test_pivot_table():
     ))
 
 
+def test_iterable_class():
+    i = pd.date_range(dt(2024, 1, 1), dt(2024, 2, 1))
+    print(*i)
+
+
+
+
 if __name__ == '__main__':
-    test_pivot_table()
+    test_iterable_class()

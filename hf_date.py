@@ -1,14 +1,15 @@
 import re
 import pandas as pd
+import numpy as np
 from numpy import datetime64
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
 
 if 'helper_function' in __name__.split('.'):
-    from .hf_math import crop, grid_pos
+    from .hf_math import crop, grid_pos, nd_array_crop
     from .hf_number import is_number
 else:
-    from hf_math import crop, grid_pos
+    from hf_math import crop, grid_pos, nd_array_crop
     from hf_number import is_number
 
 weekday_abbr = {
@@ -262,6 +263,20 @@ def get_date_range_str(date_range):
     return s
 
 
+def get_overlap_days(sts, exps, sts_exps, st_fillna=dt(1990, 1, 1), exp_fillna=dt(2199, 1, 1)):
+    # 将缺失值替换为默认时间
+    sts = sts.fillna(pd.Timestamp(st_fillna)).astype(np.int64)
+    exps = exps.fillna(pd.Timestamp(exp_fillna)).astype(np.int64)
+
+    # 将时间戳转换为整数表示
+    sts_exps_ = np.array([[int(item.timestamp()) * 1000 ** 3 for item in st_exp] for st_exp in sts_exps])
+
+    # 计算重叠天数
+    res = nd_array_crop(sts.values, exps.values, sts_exps_.astype(np.int64))
+    res = np.maximum(res / (24 * 60 * 60 * 1000 ** 3), 0)  # 确保结果不小于0
+    return res
+
+
 def test_read_state_council_vacation_info():
     f = open('e:\\2021_vacation.txt', encoding='utf-8')
     rs = f.readlines()
@@ -313,12 +328,8 @@ def test_get_work_day():
     print(get_work_day(dt1, calendar, 1))
 
 
-
 if __name__ == '__main__':
-    # print(get_calendar_pos(dt(2021, 12, 20)))
-    #test_read_state_council_vacation_info()
-    #test_read_calendar()
-    test_get_work_day()
+    pass
 
 
 
