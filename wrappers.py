@@ -1,14 +1,27 @@
 import time
 import traceback
-import pandas
-import pymysql.err
+import pandas as pd
+import numpy as np
+from collections.abc import Sequence
+
 import warnings
 from sqlalchemy.exc import PendingRollbackError, InterfaceError, OperationalError, InternalError
-from flask import jsonify
+
 from copy import deepcopy
 from mint.helper_function.hf_string import to_json_obj, to_json_str
+from inspect import signature
 
 warnings.filterwarnings("ignore")
+
+
+
+def broadcast_param(param):
+    if isinstance(param, (Sequence, pd.DataFrame, pd.Series, pd.Index, np.ndarray)):
+        res = np.array(param)
+    else:
+        res = np.array([param])
+    return res
+
 
 
 def error_retry(e, trail=0, sleep_time=1):
@@ -146,6 +159,37 @@ def byval_param_wrapper(func):
     return wrapper
 
 
+def nd_param_wrapper(names=None):
+    def _(func):
+        def wrapper(*args, **kwargs):
+            args_ = list(args)
+            kwargs_ = dict(kwargs)
+            sig = signature(func)
+            params = list(sig.parameters.keys())
+            if names is not None:
+                for name in names:
+                    if name in params:
+                        for k, v in kwargs_.items():
+                            if k == name:
+                                kwargs_[k] = broadcast_param(v)
+                                break
+                        else:
+                            for i, param_name in enumerate(params):
+                                if param_name == name:
+                                    args_[i] = broadcast_param(args_[i])
+                                    break
+
+            res = func(*args_, **kwargs_)
+
+            return res
+
+        wrapper.__name__ = func.__name__
+
+        return wrapper
+
+    return _
+
+
 def index_wrapper(func):
     def wrapper(*args, **kwargs):
         res = func(*args, **kwargs)
@@ -165,7 +209,7 @@ def test_func(df):
 
 
 def test_byval():
-    df = pandas.DataFrame(columns=['b'])
+    df = pd.DataFrame(columns=['b'])
     df['b'] = [2]
     test_func(df)
     print(df)

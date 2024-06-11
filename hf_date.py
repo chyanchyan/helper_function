@@ -263,7 +263,13 @@ def get_date_range_str(date_range):
     return s
 
 
-def get_overlap_days(sts, exps, sts_exps, st_fillna=dt(1990, 1, 1), exp_fillna=dt(2199, 1, 1)):
+def get_overlap_days(
+        sts,
+        exps,
+        sts_exps,
+        st_fillna=dt(1990, 1, 1),
+        exp_fillna=dt(2199, 1, 1)
+):
     # 将缺失值替换为默认时间
     sts = sts.fillna(pd.Timestamp(st_fillna)).astype(np.int64)
     exps = exps.fillna(pd.Timestamp(exp_fillna)).astype(np.int64)

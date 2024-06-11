@@ -244,7 +244,7 @@ def pivot_table(data, index=None, values=None, aggfunc: AggFuncType = None):
         values = [values]
 
     if aggfunc is None:
-        aggfunc = sum
+        aggfunc = "sum"
 
     data_exts = set(get_ext(values))
     res_ext = get_ext(index_local)[-1]  # 取最后一个汇总字段的后缀
