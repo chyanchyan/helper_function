@@ -5,12 +5,18 @@ from numpy import datetime64
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
 
-if 'helper_function' in __name__.split('.'):
-    from .hf_math import crop, grid_pos, nd_array_crop
-    from .hf_number import is_number
-else:
-    from hf_math import crop, grid_pos, nd_array_crop
-    from hf_number import is_number
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
+from helper_function.hf_math import crop, grid_pos, nd_array_crop
+from helper_function.hf_number import is_number
+
 
 weekday_abbr = {
     'mon': 0,

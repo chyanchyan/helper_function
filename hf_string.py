@@ -46,7 +46,10 @@ class UDJsonEncoder(json.JSONEncoder):
         elif isinstance(obj, bytearray):
             return obj.decode("utf-8", errors="replace")
         else:
-            return json.JSONEncoder.default(self, obj)
+            try:
+                return json.JSONEncoder.default(self, obj)
+            except TypeError as e:
+                return str(e)
 
 
 def to_json_str(json_obj):

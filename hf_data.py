@@ -8,10 +8,16 @@ from pandas._typing import AggFuncType
 from collections.abc import Sequence
 from copy import deepcopy
 
-if 'helper_function' in __name__.split('.'):
-    from .hf_string import to_json_str, get_ext, set_ext
-else:
-    from hf_string import to_json_str, get_ext, set_ext
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
+from helper_function.hf_string import to_json_str, get_ext, set_ext
 
 
 class Infinite:

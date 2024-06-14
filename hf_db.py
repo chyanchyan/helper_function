@@ -5,10 +5,16 @@ import pandas as pd
 from sqlalchemy import text
 from sqlalchemy import inspect
 
-if 'helper_function' in __name__.split('.'):
-    from .hf_file import mkdir
-else:
-    from hf_file import mkdir
+import sys
+import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
+from helper_function.hf_file import mkdir
 
 
 def df_to_db(

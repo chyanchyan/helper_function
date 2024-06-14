@@ -27,7 +27,7 @@ def fit_col_width(writer, df, sheet_name):
             worksheet.column_dimensions[get_column_letter(i)].width = max(min(width + 2, 25), 10)
 
 
-def migration_pandas(engine, data_path, schema, if_exists):
+def migration_pandas(con, data_path, schema, if_exists):
     name = os.path.basename(data_path)[:-5]
     try:
         data = pd.read_excel(data_path, index_col=False)
@@ -63,7 +63,7 @@ def migration_pandas(engine, data_path, schema, if_exists):
 
         data_to_db.to_sql(
             name=name,
-            con=engine,
+            con=con,
             schema=schema,
             if_exists=if_exists,
             index=False
