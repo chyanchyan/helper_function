@@ -43,7 +43,6 @@ def df_to_db(
         try:
             df_new = eval('df[%s]' % not_in_str)
         except KeyError:
-            print()
             raise KeyError
         df_conflict = eval('df[%s]' % or_in_str)
     else:

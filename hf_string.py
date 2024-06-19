@@ -165,6 +165,11 @@ def set_ext(index, original, target):
     return res
 
 
+def get_first_letter_of_dash_name(s):
+    res = ''.join([item[0] for item in s.split('_')])
+    return res
+
+
 def to_chi_yes_no(raw_input):
     if isinstance(raw_input, str):
         if '是' in raw_input and '不是' not in raw_input:

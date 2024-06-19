@@ -23,7 +23,6 @@ def broadcast_param(param):
     return res
 
 
-
 def error_retry(e, trail=0, sleep_time=1):
     print(traceback.format_exc())
     print(repr(e))

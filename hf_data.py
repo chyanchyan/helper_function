@@ -17,7 +17,7 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-from helper_function.hf_string import to_json_str, get_ext, set_ext
+from helper_function.hf_string import to_json_str
 
 
 class Infinite:
@@ -190,12 +190,15 @@ def depth_first_search(
         stack: List[str]
 ):
     visited.add(node)
-    try:
-        for parent in graph[node]:
-            if parent not in visited:
-                depth_first_search(parent, graph, visited, stack)
-    except KeyError:
-        print()
+    if node not in graph:
+        stack.append(node)
+    else:
+        try:
+            for parent in graph[node]:
+                if parent not in visited:
+                    depth_first_search(parent, graph, visited, stack)
+        except KeyError:
+            print(f'{node} is not in graph {graph}')
     stack.append(node)
 
 
@@ -231,6 +234,43 @@ def construct_nested_dict(path_list):
     return res
 
 
+def get_table_prefix(index):
+    if isinstance(index, list):
+        res = [get_table_prefix(s) for s in index]
+    elif isinstance(index, str):
+        try:
+            res = index.split('.')[0]
+        except ValueError:
+            res = ['']
+    elif isinstance(index, tuple):
+        res = get_table_prefix(index[0])
+    elif index is None:
+        res = ['']
+    else:
+        print('invalid Type for index: ')
+        print(index)
+        raise TypeError
+
+    return res
+
+
+def set_table_prefix(index, original, target):
+    if isinstance(index, str):
+        parts = index.split('.')
+        if parts[0] == original:
+            parts[0] = target
+        res = '.'.join(parts)
+    elif isinstance(index, list):
+        res = [set_table_prefix(item, original, target) for item in index]
+    elif isinstance(index, tuple):
+        res = tuple([set_table_prefix(index[0], original, target), *index[1:]])
+    else:
+        print('invalid Type for index: ')
+        print(index)
+        raise TypeError
+    return res
+
+
 def pivot_table(data, index=None, values=None, aggfunc: AggFuncType = None):
 
     if isinstance(index, str):
@@ -252,8 +292,8 @@ def pivot_table(data, index=None, values=None, aggfunc: AggFuncType = None):
     if aggfunc is None:
         aggfunc = "sum"
 
-    data_exts = set(get_ext(values))
-    res_ext = get_ext(index_local)[-1]  # 取最后一个汇总字段的后缀
+    data_prefixes = set(get_table_prefix(values))
+    res_prefix = get_table_prefix(index_local[-1])  # 取最后一个汇总字段的后缀
 
     if index_local is None:
         res = pd.DataFrame([data[values].sum(axis=0)])
@@ -276,8 +316,8 @@ def pivot_table(data, index=None, values=None, aggfunc: AggFuncType = None):
             res = pd.DataFrame(columns=list(index_local) + list(values))
 
     cols = res.columns.tolist()
-    for data_ext in data_exts:
-        cols = set_ext(cols, data_ext, res_ext)
+    for data_prefix in data_prefixes:
+        cols = set_table_prefix(cols, data_prefix, res_prefix)
     res.columns = cols
 
     return res
