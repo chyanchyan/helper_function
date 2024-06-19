@@ -10,14 +10,15 @@ from sqlalchemy.exc import PendingRollbackError, InterfaceError, OperationalErro
 from copy import deepcopy
 from mint.helper_function.hf_string import to_json_obj, to_json_str
 from inspect import signature
-
+from copy import copy
 warnings.filterwarnings("ignore")
 
 
-
 def broadcast_param(param):
-    if isinstance(param, (Sequence, pd.DataFrame, pd.Series, pd.Index, np.ndarray)):
+    if isinstance(param, (Sequence, pd.DataFrame, pd.Series, pd.Index)):
         res = np.array(param)
+    elif isinstance(param, np.ndarray):
+        res = copy(param)
     else:
         res = np.array([param])
     return res

@@ -305,11 +305,13 @@ def pivot_table(data, index=None, values=None, aggfunc: AggFuncType = None):
                 aggfunc=aggfunc
             ).reset_index()
         except KeyError as e:
-            print(e)
+            print('columns in data:')
             for item in data.columns.tolist():
                 print(item)
-            print(index_local)
-            print(values)
+            print('*' * 100)
+            print(f'KeyError: {e}')
+            print(f'index_local: {index_local}')
+            print(f'values: {values}')
             raise KeyError
 
         if len(res) == 0:
