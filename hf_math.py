@@ -92,19 +92,19 @@ def array_crop(sts, exps, st, exp):
 def nd_array_crop(sts, exps, sts_exps):
     bc_sts_exps = np.broadcast_to(sts_exps, (len(sts), len(sts_exps), 2)).T
 
-    res = (exps > bc_sts_exps[0, :, :]) * (
+    res = (exps > bc_sts_exps[0, :, :]).astype(float) * (
         (
-            (sts <= bc_sts_exps[0, :, :]) * (
-                (exps >= bc_sts_exps[1, :, :]) * (bc_sts_exps[1, :, :] - bc_sts_exps[0, :, :]) +
-                (exps < bc_sts_exps[1, :, :]) * (exps - bc_sts_exps[0, :, :])
+            (sts <= bc_sts_exps[0, :, :]).astype(float) * (
+                (exps >= bc_sts_exps[1, :, :]).astype(float) * (bc_sts_exps[1, :, :] - bc_sts_exps[0, :, :]) +
+                (exps < bc_sts_exps[1, :, :]).astype(float) * (exps - bc_sts_exps[0, :, :])
             )
         ) + (
             (
-                (sts > bc_sts_exps[0, :, :]) *
-                (sts <= bc_sts_exps[1, :, :])
+                (sts > bc_sts_exps[0, :, :]).astype(float) *
+                (sts <= bc_sts_exps[1, :, :]).astype(float)
             ) * (
-                (exps >= bc_sts_exps[1, :, :]) * (bc_sts_exps[1, :, :] - sts) +
-                (exps < bc_sts_exps[1, :, :]) * (exps - sts)
+                (exps >= bc_sts_exps[1, :, :]).astype(float) * (bc_sts_exps[1, :, :] - sts) +
+                (exps < bc_sts_exps[1, :, :]).astype(float) * (exps - sts)
             )
         )
     )
@@ -117,6 +117,28 @@ def array_minus(a, v):
     res = (ca > v) * a
     res[(res != 0).argmax()] += ((ca <= v) * a).sum() - v
     return res
+
+
+def get_group_last_row_before_line(
+        data: pd.DataFrame,
+        index: str | list,
+        line_col_name: str,
+        line_values,
+        lines
+):
+    if isinstance(index, str):
+        index = [index]
+    data_ = data.sort_values(index + [line_col_name]).reset_index()
+    lines_array = np.array(lines)
+    a = line_values < lines_array
+    data_[lines] = a
+    idxs = [data_[data_[line_col_name] < line].groupby(index).idxmax() for line in lines]
+    res = np.zeros(shape=a.shape)
+    for c, idx in enumerate(idxs):
+        res[idx['index'], c] = 1
+
+    return res
+
 
 
 def test_grid_pos():

@@ -277,15 +277,20 @@ def get_overlap_days(
         exp_fillna=dt(2199, 1, 1)
 ):
     # 将缺失值替换为默认时间
-    sts = sts.fillna(pd.Timestamp(st_fillna)).astype(np.int64)
-    exps = exps.fillna(pd.Timestamp(exp_fillna)).astype(np.int64)
-
-    # 将时间戳转换为整数表示
-    ranges_ = np.array([[int(item.timestamp()) * 1000 ** 3 for item in st_exp] for st_exp in ranges])
+    sts = sts.fillna(st_fillna)
+    exps = exps.fillna(exp_fillna)
+    seconds_per_day = 86400
 
     # 计算重叠天数
-    res = nd_array_crop(sts.values, exps.values, ranges_.astype(np.int64))
-    res = np.maximum(res / (24 * 60 * 60 * 1000 ** 3), 0)  # 确保结果不小于0
+    res = nd_array_crop(
+        pd.to_datetime(sts.values).to_pydatetime(),
+        pd.to_datetime(exps.values).to_pydatetime(),
+        ranges
+    )
+    res = np.vectorize(lambda x: x.total_seconds())(res)
+    res = res / seconds_per_day
+
+    res = np.maximum(res, 0)  # 确保结果不小于0
     return res
 
 
