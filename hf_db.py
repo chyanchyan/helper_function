@@ -104,12 +104,10 @@ def df_to_db(
                             sqls.append(sql)
 
                 if len(sqls) > 0:
-                    cursor = con.connect()
                     for sql in sqls:
                         print(sql)
-                        cursor.execute(text(sql))
-                    cursor.commit()
-                    cursor.close()
+                        con.execute(text(sql))
+                    con.commit()
             else:
                 row = pd.DataFrame([row], index=None)
                 row.to_sql(name=name, con=con, schema=schema, if_exists='append', index=False)
@@ -121,6 +119,34 @@ def df_to_db(
         df_new.to_sql(name=name, con=con, schema=schema, if_exists='append', index=index)
 
     return df_conflict
+
+
+def dfs_to_db(con, d_dfs, tree, schema):
+    for node_root in tree.booking_sequence:
+        try:
+            d_dfs[node_root]
+        except KeyError:
+            continue
+
+        table = tree.tables[node_root]
+        df = d_dfs[node_root]
+        df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
+        print(node_root)
+        print(df)
+        print('*' * 100)
+        if len(df) == 0:
+            continue
+        df_to_db(
+            df=df,
+            name=node_root,
+            check_cols=[
+                col.col_name for col in table.cols.values()
+                if col.check_pk == 1],
+            if_conflict='fill_update',
+            con=con,
+            schema=schema
+        )
 
 
 def export_xl(output_folder, con, schema, table_names=None):

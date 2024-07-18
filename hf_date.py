@@ -14,6 +14,7 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
+from helper_function.hf_func import profile_line_by_line
 from helper_function.hf_math import crop, grid_pos, nd_array_crop
 from helper_function.hf_number import is_number
 
@@ -277,17 +278,19 @@ def get_overlap_days(
         exp_fillna=dt(2199, 1, 1)
 ):
     # 将缺失值替换为默认时间
-    sts = sts.fillna(st_fillna)
-    exps = exps.fillna(exp_fillna)
+    sts_ = pd.to_datetime(pd.Series(sts)).fillna(st_fillna).values.astype('int64') / 10 ** 9
+    exps_ = pd.to_datetime(pd.Series(exps)).fillna(exp_fillna).values.astype('int64') / 10 ** 9
+    ranges_ = [(start.timestamp(), end.timestamp()) for start, end in ranges]
+    ranges_ = np.array(ranges_).astype('int64')
     seconds_per_day = 86400
 
     # 计算重叠天数
     res = nd_array_crop(
-        pd.to_datetime(sts.values).to_pydatetime(),
-        pd.to_datetime(exps.values).to_pydatetime(),
-        ranges
+        sts_,
+        exps_,
+        ranges_
     )
-    res = np.vectorize(lambda x: x.total_seconds())(res)
+
     res = res / seconds_per_day
 
     res = np.maximum(res, 0)  # 确保结果不小于0

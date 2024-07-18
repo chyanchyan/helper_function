@@ -1,8 +1,20 @@
 import numpy as np
 import pandas as pd
 import itertools
-from copy import copy
+from copy import copy, deepcopy
+from functools import reduce
 
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
+
+from helper_function.hf_func import profile_line_by_line
+from helper_function.hf_array import merge_timeseries
 
 def grid_pos(n, width):
     re = n // width, n % width
@@ -92,22 +104,16 @@ def array_crop(sts, exps, st, exp):
 def nd_array_crop(sts, exps, sts_exps):
     bc_sts_exps = np.broadcast_to(sts_exps, (len(sts), len(sts_exps), 2)).T
 
-    res = (exps > bc_sts_exps[0, :, :]).astype(float) * (
-        (
-            (sts <= bc_sts_exps[0, :, :]).astype(float) * (
-                (exps >= bc_sts_exps[1, :, :]).astype(float) * (bc_sts_exps[1, :, :] - bc_sts_exps[0, :, :]) +
-                (exps < bc_sts_exps[1, :, :]).astype(float) * (exps - bc_sts_exps[0, :, :])
-            )
-        ) + (
-            (
-                (sts > bc_sts_exps[0, :, :]).astype(float) *
-                (sts <= bc_sts_exps[1, :, :]).astype(float)
-            ) * (
-                (exps >= bc_sts_exps[1, :, :]).astype(float) * (bc_sts_exps[1, :, :] - sts) +
-                (exps < bc_sts_exps[1, :, :]).astype(float) * (exps - sts)
-            )
-        )
-    )
+    lower_bound = bc_sts_exps[0, :, :]
+    upper_bound = bc_sts_exps[1, :, :]
+    a_sts = np.broadcast_to(sts, (len(sts_exps), len(sts)))
+    a_exps = np.broadcast_to(exps, (len(sts_exps), len(exps)))
+
+    res = np.maximum(
+        np.minimum(upper_bound, a_exps) -
+        np.maximum(lower_bound, a_sts),
+        np.zeros_like(lower_bound)
+    ).T
 
     return res
 
@@ -119,6 +125,7 @@ def array_minus(a, v):
     return res
 
 
+@profile_line_by_line
 def get_group_last_row_before_line(
         data: pd.DataFrame,
         index: str | list,
@@ -140,40 +147,38 @@ def get_group_last_row_before_line(
     return res
 
 
+def sumprod_timeseries(
+        dfs,
+        axis_cols,
+        value_cols,
+        output_col,
+        index=None,
+        output_axis_col=None
+):
+    if index is None:
+        index_ = []
+    elif isinstance(index, str):
+        index_ = [index]
+    else:
+        index_ = list(index)
 
-def test_grid_pos():
-    print(grid_pos(10, 3))
+    res = merge_timeseries(
+        dfs=dfs,
+        index=index,
+        axis_cols=axis_cols,
+        mask_original_na='[na_mask]',
+        output_axis_col=output_axis_col
+    )
 
+    res = res.sort_values([*index_, output_axis_col]).set_index(index_)
+    res = res.groupby(index_)
+    res = res.ffill().reset_index()
 
-def test_crop():
-    print(crop(6, 1, 3, 2))
+    res[[*index_, *value_cols, output_axis_col]] = res[[*index_, *value_cols, output_axis_col]].fillna(0)
 
+    res.replace('[na_mask]', np.nan, inplace=True)
 
-def test_cartesian():
-    l1 = [1, 2, 3, 4]
-    l2 = ['a', 'b', 'c']
-    l3 = [5, 6, 7]
+    res[output_col] = np.prod(res[value_cols].values, axis=1)
 
-    for item in itertools.product(l1, l2, l3):
-        print(item)
+    return res
 
-
-def test_array_minus():
-    a = [100]
-    v = 50
-    print(array_minus(a, v))
-
-    a = [550, 150, 200, 0, 100]
-    v = 750
-    print(array_minus(a, v))
-
-
-def test_nd_array_op():
-    a = np.array([1, 2, 3, 4, 5])
-    b = np.array([6, 7, 8, 9, 10])
-    v = np.array([[2, 3], [3, 4], [4, 5], [5, 6]])
-    print(nd_array_crop(a, b, v))
-
-
-if __name__ == '__main__':
-    test_nd_array_op()

@@ -167,7 +167,11 @@ def nd_param_wrapper(names=None):
             sig = signature(func)
             params = list(sig.parameters.keys())
             if names is not None:
-                for name in names:
+                if isinstance(names, str):
+                    names_ = [names]
+                else:
+                    names_ = names
+                for name in names_:
                     if name in params:
                         for k, v in kwargs_.items():
                             if k == name:

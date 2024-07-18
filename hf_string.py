@@ -189,13 +189,3 @@ def nan_to_empty_string(value):
     else:
         return value
 
-
-def test_dash_name_to_camel():
-    s = 'table_name_example'
-    print(dash_name_to_camel(s))
-
-
-if __name__ == '__main__':
-    test_dash_name_to_camel()
-
-

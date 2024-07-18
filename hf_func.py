@@ -2,6 +2,7 @@ import time
 from tqdm import tqdm
 import line_profiler
 import traceback
+from functools import wraps
 
 
 def timecost(runningtime=1):
@@ -73,14 +74,26 @@ class PropertyIndexer:
 
 
 def profile_line_by_line(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
-        profiler = line_profiler.LineProfiler()
-        profiler.add_function(func)
-        profiler.enable_by_count()
+        if not hasattr(wrapper, 'profiler'):
+            wrapper.profiler = line_profiler.LineProfiler()
+            wrapper.profiler.add_function(func)
+            wrapper.recursion_level = 0
 
-        result = profiler(func)(*args, **kwargs)
+        wrapper.recursion_level += 1
 
-        profiler.print_stats()
+        if wrapper.recursion_level == 1:
+            wrapper.profiler.enable_by_count()
+
+        result = func(*args, **kwargs)
+
+        wrapper.recursion_level -= 1
+
+        if wrapper.recursion_level == 0:
+            wrapper.profiler.disable_by_count()
+            wrapper.profiler.print_stats()
+
         return result
 
     return wrapper

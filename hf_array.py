@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import numpy as np
 import pandas as pd
 import copy
 from functools import reduce
@@ -102,3 +102,33 @@ def flatten(l):
 
     return res
 
+
+def merge_timeseries(
+        dfs,
+        index,
+        axis_cols,
+        mask_original_na=None,
+        output_axis_col=None
+):
+    if index is None:
+        index_ = []
+    elif isinstance(index, str):
+        index_ = [index]
+    else:
+        index_ = list(index)
+
+    if output_axis_col is None:
+        output_axis_col = '_axis_col'
+
+    dfs_copy = [df.copy() for df in dfs]
+    for i, df in enumerate(dfs_copy):
+        df.rename(columns={axis_cols[i]: output_axis_col}, inplace=True)
+        if mask_original_na is not None:
+            df.fillna(mask_original_na, inplace=True)
+
+    res = reduce(
+        lambda x, y: pd.merge(x, y, on=[*index_, output_axis_col], how='outer'),
+        dfs_copy
+    )
+
+    return res

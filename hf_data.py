@@ -258,7 +258,10 @@ def set_table_prefix(index, original, target):
     if isinstance(index, str):
         parts = index.split('.')
         if parts[0] == original:
-            parts[0] = target
+            if target is None:
+                parts = parts[1:]
+            else:
+                parts[0] = target
         res = '.'.join(parts)
     elif isinstance(index, list):
         res = [set_table_prefix(item, original, target) for item in index]
@@ -293,11 +296,12 @@ def pivot_table(data, index=None, values=None, aggfunc: AggFuncType = None):
         aggfunc = "sum"
 
     data_prefixes = set(get_table_prefix(values))
-    res_prefix = get_table_prefix(index_local[-1])  # 取最后一个汇总字段的后缀
 
     if index_local is None:
         res = pd.DataFrame([data[values].sum(axis=0)])
+        res_prefix = None  # 取最后一个汇总字段的后缀
     else:
+        res_prefix = get_table_prefix(index_local[-1])  # 取最后一个汇总字段的后缀
         try:
             res = data.pivot_table(
                 index=index_local,
