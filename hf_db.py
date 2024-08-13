@@ -15,6 +15,7 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 from helper_function.hf_file import mkdir
+from helper_function.hf_string import get_col_sql_str
 
 
 def df_to_db(
@@ -173,3 +174,18 @@ def export_xl(output_folder, con, schema, table_names=None):
         df.to_excel(file_path, index=False)
 
         print(f'table {table_name} exported. path: {file_path}')
+
+
+def get_data_df(con, table_name, cols=None):
+    if cols is None:
+        col_sql_str = '*'
+    else:
+        col_sql_str = get_col_sql_str(cols=cols)
+
+    sql = f'select {col_sql_str} from {table_name}'
+
+    data = pd.read_sql(
+        sql=sql,
+        con=con
+    )
+    return data

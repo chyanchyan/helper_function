@@ -8,18 +8,17 @@ from copy import copy
 
 
 class UDJsonEncoder(json.JSONEncoder):
-
     def default(self, obj):
         if isinstance(obj, dt):
             if pd.isna(obj):
                 return None
-            return obj.strftime("%F")
+            return obj.strftime("%F %T")
         elif isinstance(obj, pd.Series):
-            obj = obj.replace(np.nan, None)
-            return obj.tolist()
+            res = obj.replace(np.nan, None).tolist()
+            return res
         elif isinstance(obj, pd.DataFrame):
-            obj = obj.replace(np.nan, None)
-            return obj.to_dict()
+            res = obj.replace(np.nan, None).to_dict(orient='records')
+            return res
         elif obj is np.nan:
             return None
         elif obj is pd.NaT:
@@ -189,3 +188,6 @@ def nan_to_empty_string(value):
     else:
         return value
 
+
+def get_col_sql_str(cols, quote_mark='`'):
+    return ', '.join([f'{quote_mark}{col}{quote_mark}' for col in cols])

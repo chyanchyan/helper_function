@@ -17,7 +17,7 @@ parent_dir = os.path.dirname(current_dir)
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-from helper_function.hf_string import to_json_str
+from helper_function.hf_string import to_json_str, to_json_obj
 
 
 class Infinite:
@@ -87,35 +87,15 @@ class JsonObj:
 
         for attr in include_attrs:
             value = eval('self.%s' % attr)
-            if isinstance(value, (list, tuple, set)):
-                try:
-                    res[attr] = []
-                except AttributeError:
-                    continue
-
-                for v in value:
-                    if v:
-                        try:
-                            res[attr].append(
-                                v.to_json_obj_raw(include_attrs=include_attrs)
-                            )
-                        except AttributeError:
-                            res[attr].append(v)
-
-            elif isinstance(value, dict):
-                try:
-                    res[attr] = dict()
-                except AttributeError:
-                    continue
-                for k, v in value.items():
-                    try:
-                        res[attr][k] = v.to_json_obj_raw(include_attrs=include_attrs)
-                    except AttributeError:
-                        res[attr][k] = v
-
+            if isinstance(value, (list, tuple, set, dict, pd.DataFrame, pd.Series)):
+                js = to_json_str(value)
+                res[attr] = to_json_obj(js)
+            elif pd.isna(value):
+                res[attr] = None
             else:
                 try:
                     res[attr] = value.to_json_obj_raw(include_attrs=include_attrs)
+                    print()
                 except AttributeError:
                     res[attr] = value
 
@@ -400,48 +380,3 @@ def get_tuple_cols(col_name: str, seq: Sequence | pd.DataFrame | pd.Series | pd.
         return [(col_name, item) for item in seq]
 
 
-def test_construct_nested_dict():
-    path_list = [
-        'a1/a1-b1/a1-b1-c1',
-        'a1/a1-b1/a1-b1-c2',
-        'a1/a1-b2/a1-b2-c1',
-        'a2/a2-b1/c1',
-        'a2/a2-b2/c2',
-    ]
-
-    res = construct_nested_dict(path_list=path_list)
-    print(to_json_str(res))
-
-
-def test_pivot_table():
-    data = pd.DataFrame(
-        columns=['a[p]', 'b[c]', 'c'],
-        data=[
-            ['1', 11, 111],
-            ['2', 12, 112],
-            ['3', 13, 113],
-            ['4', 14, 114],
-        ]
-    )
-    print(data)
-    print(pivot_table(
-        data=data,
-        index=None,
-        values=['c']
-    ))
-    print(pivot_table(
-        data=data,
-        index='a[p]',
-        values=['c']
-    ))
-
-
-def test_iterable_class():
-    i = pd.date_range(dt(2024, 1, 1), dt(2024, 2, 1))
-    print(*i)
-
-
-
-
-if __name__ == '__main__':
-    test_iterable_class()
