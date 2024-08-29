@@ -3,6 +3,7 @@ from tqdm import tqdm
 import line_profiler
 import traceback
 from functools import wraps
+import inspect
 
 
 def timecost(runningtime=1):
@@ -105,3 +106,7 @@ def error_handler(response='', data='', exc=''):
     if len(exc) > 0:
         traceback.print_exc()
         print(str(exc))
+
+
+def get_param_names(func):
+    return [param.name for param in inspect.signature(func).parameters.values()]
