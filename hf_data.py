@@ -380,3 +380,23 @@ def get_tuple_cols(col_name: str, seq: Sequence | pd.DataFrame | pd.Series | pd.
         return [(col_name, item) for item in seq]
 
 
+def is_equal(v1, v2):
+    if isinstance(v1, dict) and isinstance(v2, dict):
+        if len(v1) != len(v2):
+            return False
+
+        for key in v1:
+            if key not in v2:
+                return False
+            if is_equal(v1[key], v2[key]):
+                return False
+    elif isinstance(v1, (list, tuple)) and isinstance(v2, (list, tuple)):
+        if len(v1) != len(v2):
+            return False
+        for i in range(len(v1)):
+            if is_equal(v1[i], v2[i]):
+                return False
+    elif isinstance(v1, dt) and isinstance(v2, dt):
+        return v1.strftime('%F%T') == v2.strftime('%F%T')
+    else:
+        return v1 == v2 or str(v1) == str(v2)
