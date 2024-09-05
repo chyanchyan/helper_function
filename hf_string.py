@@ -44,6 +44,15 @@ class UDJsonEncoder(json.JSONEncoder):
             return str(obj)
         elif isinstance(obj, bytearray):
             return obj.decode("utf-8", errors="replace")
+        elif isinstance(obj, float):
+            if obj == float('inf'):
+                return "Infinity"
+            elif obj == float('-inf'):
+                return "-Infinity"
+            elif np.isnan(obj):
+                return None
+            else:
+                return obj
         else:
             try:
                 return json.JSONEncoder.default(self, obj)
@@ -51,8 +60,13 @@ class UDJsonEncoder(json.JSONEncoder):
                 return str(e)
 
 
-def to_json_str(json_obj):
-    return json.dumps(json_obj, indent=4, ensure_ascii=False, cls=UDJsonEncoder)
+def to_json_str(json_obj, indent=4):
+    return json.dumps(
+        json_obj,
+        indent=indent,
+        ensure_ascii=False,
+        cls=UDJsonEncoder,
+    )
 
 
 def to_json_obj(json_str):
@@ -191,3 +205,8 @@ def nan_to_empty_string(value):
 
 def get_col_sql_str(cols, quote_mark='`'):
     return ', '.join([f'{quote_mark}{col}{quote_mark}' for col in cols])
+
+
+if __name__ == '__main__':
+    js = to_json_str(float('inf'))
+    print(js)
