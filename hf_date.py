@@ -278,8 +278,8 @@ def get_overlap_days(
         exp_fillna=dt(2199, 1, 1)
 ):
     # 将缺失值替换为默认时间
-    sts_ = pd.to_datetime(pd.Series(sts)).fillna(st_fillna).values.astype('int64') / 10 ** 9
-    exps_ = pd.to_datetime(pd.Series(exps)).fillna(exp_fillna).values.astype('int64') / 10 ** 9
+    sts_ = pd.to_datetime(pd.Series(sts), utc=False).fillna(st_fillna).values.astype('int64') / 10 ** 9
+    exps_ = pd.to_datetime(pd.Series(exps), utc=False).fillna(exp_fillna).values.astype('int64') / 10 ** 9
     ranges_ = [(start.timestamp(), end.timestamp()) for start, end in ranges]
     ranges_ = np.array(ranges_).astype('int64')
     seconds_per_day = 86400
