@@ -331,6 +331,14 @@ def get_calendar_pos(target_date: dt, today_date=dt.today(), grid_shape='single'
     return year_left_click_times, month_left_click_times, day_x, day_y
 
 
+def date_ext_to_date(s):
+    if '-' in s:
+        st, exp = s.split('-')
+        return dt.strptime(st, '%Y%m%d'), dt.strptime(exp, '%Y%m%d')
+    else:
+        return dt.strptime(s, '%Y%m%d'), dt.strptime(s, '%Y%m%d')
+
+
 def test_read_calendar():
     pth = r'E:\projects\db\i_calendar_2022.xlsx'
     calendar = read_calendar(pth)
