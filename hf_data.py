@@ -402,7 +402,7 @@ def is_equal(v1, v2):
         return v1.strftime('%F%T') == v2.strftime('%F%T')
     elif isinstance(v1, (int, float, str)) and isinstance(v2, (int, float, str)):
         return v1 == v2
-    elif isinstance(v1, pd.Timestamp) and isinstance(v2, pd.Timestamp):
+    elif isinstance(v1, pd.Timestamp):
         return pd.Timestamp(v1) == pd.Timestamp(v2)
     elif v1 is None and v2 is None:
         return True
