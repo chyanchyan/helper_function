@@ -396,7 +396,7 @@ def is_equal(v1, v2):
         for i in range(len(v1)):
             if is_equal(v1[i], v2[i]):
                 return False
-    elif v1 == '[delete]' or v1 == '[add]':
+    elif v2 == '[delete]' or v2 == '[add]':
         return False
     elif isinstance(v1, dt) and isinstance(v2, dt):
         return v1.strftime('%F%T') == v2.strftime('%F%T')
