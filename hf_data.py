@@ -367,6 +367,24 @@ def df_to_ant_table_options(df: pd.DataFrame, titles=None, data_types=None):
     return res
 
 
+def df_to_mui_enhanced_table_options(df: pd.DataFrame, header_labels=None, data_types=None):
+    if header_labels is None:
+        header_labels = df.columns.tolist()
+    if data_types is None:
+        data_types = ['String' for _ in header_labels]
+    headers = [
+        {
+            'key': col, 'label': header_labels[i], 'dataType': data_types[i], 'hasFilter': True
+        }
+        for i, col in enumerate(df.columns)
+    ]
+    res = {
+        'headers': headers,
+        'rows': df.to_dict(orient='records')
+    }
+    return res
+
+
 def get_tuple_cols(col_name: str, seq: Sequence | pd.DataFrame | pd.Series | pd.Index):
     if not isinstance(seq, Sequence | pd.DataFrame | pd.Series | pd.Index):
         return tuple([col_name])
@@ -400,8 +418,22 @@ def is_equal(v1, v2):
         return False
     elif v2 == '[delete]' or v2 == '[add]':
         return False
-    elif isinstance(v1, dt) and isinstance(v2, dt):
-        return v1.strftime('%F%T') == v2.strftime('%F%T')
+    elif isinstance(v1, dt):
+        if isinstance(v2, dt):
+            return v1.strftime('%F%T') == v2.strftime('%F%T')
+        elif isinstance(v2, str):
+            try:
+                _v2 = dt.strptime(v2, '%Y-%m-%d')
+                return v1.strftime('%F%T') == _v2.strftime('%F%T')
+            except ValueError:
+                try:
+                    _v2 = dt.strptime(v2, '%Y-%m-%d %H:%M:%S')
+                    return v1.strftime('%F%T') == _v2.strftime('%F%T')
+                except ValueError:
+                    return False
+        else:
+            return False
+
     elif isinstance(v1, (int, float, str)) and isinstance(v2, (int, float, str)):
         return v1 == v2
     elif isinstance(v1, pd.Timestamp):
