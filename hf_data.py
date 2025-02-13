@@ -316,6 +316,7 @@ def fill_na(obj, replace=''):
             if pd.isna(item) and not item == pd.NaT:
                 fill_list.append(key)
         except ValueError:
+            print(item)
             print(obj)
             raise ValueError
 
@@ -374,7 +375,11 @@ def df_to_mui_enhanced_table_options(df: pd.DataFrame, header_labels=None, data_
         data_types = ['String' for _ in header_labels]
     headers = [
         {
-            'key': col, 'label': header_labels[i], 'dataType': data_types[i], 'hasFilter': True
+            'key': col,
+            'label': header_labels[i],
+            'dataType': data_types[i],
+            'hasFilter': True,
+            'filterSelection': sorted(set(df[col].dropna().tolist()))
         }
         for i, col in enumerate(df.columns)
     ]
