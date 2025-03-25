@@ -125,7 +125,7 @@ def confirm_wrapper(sub):
         if ipt == 'yes':
             sub(*args, **kwargs)
         else:
-            print('aborting.')
+            print('abort.')
 
     wrapper.__name__ = sub.__name__
 
