@@ -120,15 +120,18 @@ def merge_timeseries(
     if output_axis_col is None:
         output_axis_col = '_axis_col'
 
-    dfs_copy = [df.copy() for df in dfs]
+    dfs_copy = [df.copy().dropna(how='all') for df in dfs]
     for i, df in enumerate(dfs_copy):
         df.rename(columns={axis_cols[i]: output_axis_col}, inplace=True)
+
         if mask_original_na is not None:
             df.fillna(mask_original_na, inplace=True)
+        df[output_axis_col] = df[output_axis_col].astype('string')
 
     res = reduce(
         lambda x, y: pd.merge(x, y, on=[*index_, output_axis_col], how='outer'),
         dfs_copy
     )
+
 
     return res
