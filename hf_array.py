@@ -133,5 +133,4 @@ def merge_timeseries(
         dfs_copy
     )
 
-
     return res
