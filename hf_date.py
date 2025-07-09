@@ -1,3 +1,9 @@
+"""
+日期处理辅助函数模块
+
+该模块提供了日期转换、验证、区间处理、工作日判断等日期相关的辅助函数。
+"""
+
 import re
 import pandas as pd
 import numpy as np
@@ -8,9 +14,12 @@ from dateutil.relativedelta import relativedelta
 import sys
 import os
 
+# 获取当前文件所在目录的绝对路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
+# 获取父目录路径
 parent_dir = os.path.dirname(current_dir)
 
+# 将父目录添加到Python路径中，以便导入mint模块
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
@@ -18,7 +27,7 @@ from helper_function.hf_func import profile_line_by_line
 from helper_function.hf_math import crop, grid_pos, nd_array_crop
 from helper_function.hf_number import is_number
 
-
+# 星期缩写映射
 weekday_abbr = {
     'mon': 0,
     'tue': 1,
@@ -29,6 +38,7 @@ weekday_abbr = {
     'sun': 6,
 }
 
+# 月份缩写映射
 month_abbr = {
     'jan': 0,
     'feb': 1,
@@ -46,6 +56,15 @@ month_abbr = {
 
 
 def to_dt(date):
+    """
+    将各种日期格式转换为datetime对象
+    
+    Args:
+        date: 日期，可以是datetime、numpy.datetime64、字符串等格式
+        
+    Returns:
+        datetime: 转换后的datetime对象，转换失败返回None
+    """
     if isinstance(date, dt):
         return date
     elif isinstance(date, datetime64):
@@ -71,6 +90,15 @@ def to_dt(date):
 
 
 def np_date_to_dt(np_date):
+    """
+    将numpy.datetime64转换为datetime对象
+    
+    Args:
+        np_date: numpy.datetime64对象
+        
+    Returns:
+        datetime: 转换后的datetime对象
+    """
     res = np_date
     if isinstance(res, datetime64):
         res = datetime64(res, 's')
@@ -82,10 +110,31 @@ def np_date_to_dt(np_date):
 
 
 def crop_date(st1, ed1, st2, ed2):
+    """
+    裁剪日期区间
+    
+    Args:
+        st1: 第一个区间的开始日期
+        ed1: 第一个区间的结束日期
+        st2: 第二个区间的开始日期
+        ed2: 第二个区间的结束日期
+        
+    Returns:
+        tuple: 裁剪后的日期区间
+    """
     return crop(st1, ed1, st2, ed2)
 
 
 def validate(date_text):
+    """
+    验证日期字符串格式
+    
+    Args:
+        date_text: 日期字符串，格式为年-月-日
+        
+    Returns:
+        bool: 如果格式正确返回True，否则返回False
+    """
     try:
         if date_text != dt.strptime(date_text, "%F").strftime('%F'):
             raise ValueError
@@ -96,12 +145,27 @@ def validate(date_text):
 
 
 def read_period_string(s):
+    """
+    读取周期字符串（待实现）
+    
+    Args:
+        s: 周期字符串
+    """
     pass
 
 
 def read_state_council_vacation_info(s):
+    """
+    读取国务院放假信息
+    
+    从文本中提取放假和调休信息。
+    
+    Args:
+        s: 包含放假信息的文本
+    """
     print(s)
 
+    # 提取放假日期
     date = re.findall(r'(\d{4}年\d{1,2}月\d{1,2}日)放假', s)
     year = date[:4]
 
@@ -110,13 +174,28 @@ def read_state_council_vacation_info(s):
     holiday_ym = []
     workday_ym = []
     for line in ss:
+        # 提取放假信息
         holiday_ym.extend(re.findall(r'(\d{1,2}月\d{1,2}日(.*)放假)', line))
+        # 提取调休信息
         workday_ym.extend(re.findall(r'(\d{1,2}月\d{1,2}日(.*)上班)', line))
     print(holiday_ym)
     print(workday_ym)
 
 
 def is_satisfy_date_string(date, date_string, vacation_calendar=None):
+    """
+    检查日期是否满足日期字符串条件
+    
+    日期字符串格式：年/月/日，各部分用逗号分隔表示多个选项。
+    
+    Args:
+        date: 要检查的日期
+        date_string: 日期条件字符串
+        vacation_calendar: 假期日历
+        
+    Returns:
+        bool: 是否满足条件
+    """
     ys, ms, ds = date_string.split('/')
     yss = ys.split(',')
     mss = ms.split(',')
@@ -125,12 +204,14 @@ def is_satisfy_date_string(date, date_string, vacation_calendar=None):
     ress = True
     res = False
 
+    # 检查年份
     for ys in yss:
         res |= is_satisfy_year_string(date, ys)
     ress &= res
     if not ress:
         return ress
 
+    # 检查月份
     res = False
     for ms in mss:
         res |= is_satisfy_month_string(date, ms)
@@ -138,6 +219,7 @@ def is_satisfy_date_string(date, date_string, vacation_calendar=None):
     if not ress:
         return ress
 
+    # 检查日期
     res = False
     for ds in dss:
         res |= is_satisfy_day_string(date, ds, vacation_calendar)
@@ -148,6 +230,16 @@ def is_satisfy_date_string(date, date_string, vacation_calendar=None):
 
 
 def is_satisfy_year_string(date, year_string):
+    """
+    检查日期是否满足年份条件
+    
+    Args:
+        date: 要检查的日期
+        year_string: 年份条件字符串，'y'表示任意年份
+        
+    Returns:
+        bool: 是否满足条件
+    """
     if year_string == 'y':
         return True
     else:
@@ -155,6 +247,16 @@ def is_satisfy_year_string(date, year_string):
 
 
 def is_satisfy_month_string(date, month_string):
+    """
+    检查日期是否满足月份条件
+    
+    Args:
+        date: 要检查的日期
+        month_string: 月份条件字符串，可以是数字、缩写或'm'表示任意月份
+        
+    Returns:
+        bool: 是否满足条件
+    """
     if month_string == 'm':
         return True
     elif is_number(month_string):
@@ -167,6 +269,17 @@ def is_satisfy_month_string(date, month_string):
 
 
 def is_satisfy_day_string(date: dt, day_string, vacation_calendar=None):
+    """
+    检查日期是否满足日期条件
+    
+    Args:
+        date: 要检查的日期
+        day_string: 日期条件字符串，可以是数字、星期缩写或't+数字'表示第几个工作日
+        vacation_calendar: 假期日历
+        
+    Returns:
+        bool: 是否满足条件
+    """
     if day_string == 'd':
         return True
     elif is_number(day_string):
@@ -174,6 +287,7 @@ def is_satisfy_day_string(date: dt, day_string, vacation_calendar=None):
     elif day_string in weekday_abbr.keys():
         return date.weekday() == weekday_abbr[day_string]
     elif day_string[0] == 't' and is_number(day_string[1:]):
+        # 处理第几个工作日的逻辑
         runner = 0
         runner_date = dt(date.year, date.month, 1)
         target_t_day = int(day_string[1:]) - 1
@@ -196,6 +310,16 @@ def is_satisfy_day_string(date: dt, day_string, vacation_calendar=None):
 
 
 def is_satisfy_hour_string(date: dt, hour_string):
+    """
+    检查日期是否满足小时条件
+    
+    Args:
+        date: 要检查的日期
+        hour_string: 小时条件字符串，'h'表示任意小时
+        
+    Returns:
+        bool: 是否满足条件
+    """
     if hour_string == 'h':
         return True
     elif is_number(hour_string):
