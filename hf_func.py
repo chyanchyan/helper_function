@@ -158,39 +158,67 @@ class PropertyIndexer:
 
 def profile_line_by_line(func):
     """
-    逐行性能分析装饰器
-    
-    使用line_profiler对函数进行逐行性能分析。
-    
+    逐行性能分析装饰器，兼容同步/异步函数
+
+    使用 line_profiler 对函数进行逐行性能分析。
+
     Args:
         func: 要分析的函数
-        
+
     Returns:
         function: 装饰器函数
     """
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if not hasattr(wrapper, 'profiler'):
-            wrapper.profiler = line_profiler.LineProfiler()
-            wrapper.profiler.add_function(func)
-            wrapper.recursion_level = 0
 
-        wrapper.recursion_level += 1
+    if inspect.iscoroutinefunction(func):
+        # 处理异步函数
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            if not hasattr(async_wrapper, 'profiler'):
+                async_wrapper.profiler = line_profiler.LineProfiler()
+                async_wrapper.profiler.add_function(func)
+                async_wrapper.recursion_level = 0
 
-        if wrapper.recursion_level == 1:
-            wrapper.profiler.enable_by_count()
+            async_wrapper.recursion_level += 1
 
-        result = func(*args, **kwargs)
+            if async_wrapper.recursion_level == 1:
+                async_wrapper.profiler.enable_by_count()
 
-        wrapper.recursion_level -= 1
+            result = await func(*args, **kwargs)
 
-        if wrapper.recursion_level == 0:
-            wrapper.profiler.disable_by_count()
-            wrapper.profiler.print_stats()
+            async_wrapper.recursion_level -= 1
 
-        return result
+            if async_wrapper.recursion_level == 0:
+                async_wrapper.profiler.disable_by_count()
+                async_wrapper.profiler.print_stats()
 
-    return wrapper
+            return result
+
+        return async_wrapper
+    else:
+        # 处理同步函数
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            if not hasattr(sync_wrapper, 'profiler'):
+                sync_wrapper.profiler = line_profiler.LineProfiler()
+                sync_wrapper.profiler.add_function(func)
+                sync_wrapper.recursion_level = 0
+
+            sync_wrapper.recursion_level += 1
+
+            if sync_wrapper.recursion_level == 1:
+                sync_wrapper.profiler.enable_by_count()
+
+            result = func(*args, **kwargs)
+
+            sync_wrapper.recursion_level -= 1
+
+            if sync_wrapper.recursion_level == 0:
+                sync_wrapper.profiler.disable_by_count()
+                sync_wrapper.profiler.print_stats()
+
+            return result
+
+        return sync_wrapper
 
 
 def error_handler(response='', data='', exc=''):
